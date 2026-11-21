@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Holiday Shopping Trip: Buy Now, Pay Later Simulation</title>
+<style>
+:root{
+  --navy:#10263d; --ink:#1b2430; --red:#a4161a; --red-d:#7f1013; --green:#0f5c36; --green-l:#e3f4e9; --gold:#b8860b;
+  --teal:#0b6e6e; --amber-l:#fff3dc; --amber:#9a4a05; --red-l:#fde8e8; --bg:#eef3f7; --card:#fff; --line:#c5d0dc;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;font-size:17px;line-height:1.55;color:var(--ink);
+  background:linear-gradient(#dfeaf4,#eef3f7 300px);min-height:100vh}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:4px solid #1d4ed8;outline-offset:2px}
+.sr{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* ---------- Christmas decor ---------- */
+#snow{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.flake{position:absolute;top:-12px;color:#fff;text-shadow:0 0 3px #7aa0c4;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(105vh) translateX(30px) rotate(200deg)}}
+header{position:relative;z-index:2;background:var(--green);color:#fff;padding:22px 20px 14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  border-bottom:6px solid var(--red)}
+.garland{position:absolute;left:0;right:0;top:0;height:14px;background:repeating-linear-gradient(90deg,#0a3d24 0 18px,#14803f 18px 30px);border-bottom:2px solid #07301c}
+.lights{position:absolute;left:0;right:0;top:12px;display:flex;justify-content:space-around;pointer-events:none}
+.bulb{width:12px;height:16px;border-radius:50% 50% 50% 50%/40% 40% 60% 60%;animation:twinkle 1.6s ease-in-out infinite}
+.bulb:nth-child(4n+1){background:#ff4d4d;box-shadow:0 0 10px #ff4d4d}
+.bulb:nth-child(4n+2){background:#ffd54a;box-shadow:0 0 10px #ffd54a;animation-delay:.4s}
+.bulb:nth-child(4n+3){background:#5bd1ff;box-shadow:0 0 10px #5bd1ff;animation-delay:.8s}
+.bulb:nth-child(4n){background:#8cff8c;box-shadow:0 0 10px #8cff8c;animation-delay:1.2s}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.35}}
+header h1{font-size:1.3rem;margin:14px 0 0;display:flex;align-items:center;gap:10px}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tbtn{background:#fff;color:var(--navy);border:2px solid #fff;border-radius:8px;padding:6px 12px;font-weight:600}
+.tbtn[aria-pressed="true"]{background:#d9f3de}
+.layout{position:relative;z-index:1;max-width:1150px;margin:0 auto;padding:18px;display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+@media(max-width:880px){.layout{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;background:repeating-linear-gradient(135deg,var(--red) 0 10px,#fff 10px 20px)}
+.card>*:first-child{margin-top:6px}
+.holly{position:absolute;right:10px;top:12px;font-size:1.6rem;opacity:.9;pointer-events:none}
+
+/* ---------- text and controls ---------- */
+h2{margin:6px 0 10px;font-size:1.45rem;color:var(--navy)}
+h2:focus{outline:none}
+h3{margin:16px 0 8px;font-size:1.1rem;color:var(--navy)}
+.lead{font-size:1.08rem}
+.pill{display:inline-block;background:var(--amber-l);color:var(--amber);border:1px solid #e3b878;border-radius:999px;padding:1px 12px;font-weight:700;font-size:.9rem}
+.goals{margin:6px 0 12px;padding-left:22px}
+.opt{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px 16px;margin:9px 0;color:var(--ink);transition:transform .15s,border-color .15s,background .15s}
+.opt:hover:not([aria-disabled="true"]):not(:disabled){border-color:var(--green);background:#f1faf3;transform:translateY(-2px)}
+.opt[aria-disabled="true"]{background:#eceff3;color:#46505e;cursor:not-allowed}
+.opt strong{display:block}
+.opt small{display:block;color:#364152;margin-top:2px}
+.opt.good{border-color:var(--green);background:var(--green-l)}
+.opt.bad{border-color:var(--red);background:var(--red-l)}
+.opt[aria-pressed="true"]{border-color:var(--green);background:var(--green-l)}
+.primary{background:var(--red);color:#fff;border:2px solid var(--red);border-radius:10px;padding:10px 22px;font-weight:700;margin:10px 8px 0 0}
+.primary:hover{background:var(--red-d)}
+.secondary{background:#fff;color:var(--green);border:2px solid var(--green);border-radius:10px;padding:8px 18px;font-weight:600;margin:10px 8px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.grid .opt{margin:0;text-align:center}
+.fb{border-radius:10px;padding:12px 14px;margin:12px 0;background:#e8eef7;border:1px solid #b9c7dc;animation:slide .35s ease;display:flex;gap:12px;align-items:center}
+.fb.warn{background:var(--amber-l);border-color:#e3b878}
+.fine{font-size:.93rem;color:#364152;border-left:4px solid var(--line);padding-left:10px;margin:8px 0}
+.alert{background:var(--red-l);border:2px solid var(--red);border-radius:12px;padding:14px;margin:8px 0;animation:shake .5s ease;display:flex;gap:14px;align-items:center}
+.alert h2{color:var(--red);margin:0 0 4px}
+.prog{font-size:.95rem;color:#364152}
+.stat{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #e3e8ee;padding:6px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:.95rem}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{background:#e8eef7}
+td.neg{color:var(--red);font-weight:700}
+.badge{border-radius:14px;padding:16px;margin:10px 0;font-weight:600;animation:pop .5s ease;display:flex;gap:14px;align-items:center}
+.badge.g{background:var(--green-l);border:2px solid var(--green)}
+.badge.a{background:var(--amber-l);border:2px solid var(--amber)}
+.badge.r{background:var(--red-l);border:2px solid var(--red)}
+.meter{height:18px;background:#e3e8ee;border-radius:9px;overflow:hidden;margin:4px 0 10px}
+.meter>div{height:100%;width:0;background:var(--green);transition:width 1s ease}
+.meter.m2>div{background:var(--gold)}
+
+/* ---------- mall ---------- */
+.mall{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:14px 10px 84px;background:linear-gradient(#f9fbfd,#e5edf5);border:2px solid var(--line);border-radius:14px}
+.store{position:relative;border:2px solid var(--navy);border-radius:10px;background:#fff;padding:0 8px 10px;text-align:center;color:var(--ink);min-height:122px;overflow:hidden;transition:transform .15s}
+.store:hover{transform:translateY(-3px)}
+.store .awn{height:22px;margin:0 -8px 8px;background:repeating-linear-gradient(90deg,var(--c1) 0 16px,#fff 16px 32px);border-bottom:3px solid var(--navy)}
+.store strong{display:block}
+.store small{display:block;color:#364152}
+.store .tick{color:var(--green);font-weight:700}
+.store.co{background:#fff7e0;border-color:var(--gold)}
+.token{position:absolute;width:56px;height:56px;transition:left .55s ease,top .55s ease;z-index:3;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}
+.mallfloor{position:absolute;left:0;right:0;bottom:0;height:70px;background:repeating-linear-gradient(90deg,#d6dde6 0 40px,#e4eaf1 40px 80px);border-radius:0 0 12px 12px;border-top:3px dashed #9fb0c3}
+.item{display:flex;gap:14px;align-items:center}
+.item .tag{font-size:.85rem}
+.price{font-size:1.6rem;font-weight:800;color:var(--navy)}
+.was{text-decoration:line-through;color:#46505e;font-weight:400;font-size:1rem;margin-left:8px}
+.bubble{position:relative;background:#fff;border:2px solid var(--navy);border-radius:12px;padding:8px 12px;flex:1}
+.bubble::before{content:"";position:absolute;left:-10px;top:18px;border:8px solid transparent;border-right-color:var(--navy);border-left:0}
+.sales{display:flex;gap:10px;align-items:center;margin:10px 0}
+.reci{display:flex;gap:10px;align-items:center}
+.reci svg{flex:none}
+.calendar{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+.day{border:2px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;background:#fff;animation:pop .5s ease both}
+.day.hot{border-color:var(--red);background:var(--red-l)}
+.day b{display:block;font-size:1.2rem}
+@media(max-width:600px){.calendar{grid-template-columns:repeat(2,1fr)}.mall{grid-template-columns:repeat(2,1fr)}}
+
+/* ---------- dashboard ---------- */
+.dash{position:sticky;top:10px}
+.dash h2{font-size:1.15rem}
+.dtop{display:flex;gap:10px;align-items:center}
+.big{font-size:2rem;font-weight:800;color:var(--navy);line-height:1.1}
+.big.neg{color:var(--red)}
+.track{position:relative;height:14px;background:#e6ebf1;border-radius:7px;overflow:hidden}
+.bar{height:100%;background:var(--green);width:0;transition:width .7s ease}
+.bar.hot{background:#c2570c}
+.mark{position:absolute;top:0;bottom:0;width:3px;background:var(--navy)}
+.legend{font-size:.88rem;color:#364152}
+.cart{list-style:none;margin:6px 0;padding:0;font-size:.93rem}
+.cart li{display:flex;justify-content:space-between;gap:8px;padding:2px 0;animation:pop .4s ease}
+.treebox{text-align:center;margin-top:6px}
+.coin{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a0,#d4a017);border:1px solid #8a6508;pointer-events:none;animation:coin .9s ease-out forwards}
+@keyframes coin{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+.cwrap{position:relative}
+.conf{position:fixed;top:-20px;width:10px;height:14px;z-index:9;pointer-events:none;animation:cfall linear forwards}
+@keyframes cfall{to{transform:translateY(110vh) rotate(720deg)}}
+.av{animation:bob 3s ease-in-out infinite}
+.av .eyes{transform-box:fill-box;transform-origin:center;animation:blink 5s infinite}
+.drop{animation:drip 1.4s infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(8px);opacity:0}}
+@keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes slide{0%{transform:translateY(8px);opacity:0}100%{transform:none;opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.star{animation:twinkle 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.orn{animation:twinkle 2s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.bulb{opacity:1}}
+</style>
+</head>
+<body>
+<div id="snow" aria-hidden="true"></div>
+<header>
+  <div class="garland" aria-hidden="true"></div>
+  <div class="lights" id="lights" aria-hidden="true"></div>
+  <h1><svg width="34" height="34" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><polygon points="50,6 78,48 22,48" fill="#2d9d55"/><polygon points="50,28 86,76 14,76" fill="#1f8a47"/><rect x="43" y="76" width="14" height="16" fill="#6b4423"/><polygon points="50,0 54,10 64,10 56,16 59,26 50,20 41,26 44,16 36,10 46,10" fill="#ffd54a"/></svg>
+    The Holiday Shopping Trip</h1>
+  <div class="ctrls">
+    <button class="tbtn" id="narr" aria-pressed="true">Narration: On</button>
+    <button class="tbtn" id="mus" aria-pressed="true">Music: On</button>
+    <button class="tbtn" id="sfx" aria-pressed="true">Effects: On</button>
+    <button class="tbtn" id="replay">Replay narration</button>
+  </div>
+</header>
+<div class="layout">
+  <main id="stage" class="card" tabindex="-1" aria-label="Simulation"></main>
+  <aside class="card dash" aria-label="Your money so far">
+    <h2>Your Holiday Dashboard</h2>
+    <div class="dtop"><div id="d-av" aria-hidden="true"></div><div class="bubble" id="d-say" aria-hidden="true" style="font-size:.93rem"></div></div>
+    <div class="stat"><span>Cash today</span></div>
+    <div class="cwrap"><div class="big" id="d-cash">$0</div><div id="d-coins"></div></div>
+    <div class="stat"><span>Holiday joy</span><strong id="d-joytxt">0%</strong></div>
+    <div class="meter" aria-hidden="true"><div id="d-joy"></div></div>
+    <div class="stat"><span>Fees paid or owed</span><strong id="d-fees">$0</strong></div>
+    <h3>Gift cart</h3>
+    <ul class="cart" id="d-cart"></ul>
+    <div class="treebox" id="d-tree" aria-hidden="true"></div>
+    <h3>Payments coming due</h3>
+    <div id="d-time"></div>
+    <p class="legend">The dark marker shows the spending money from one paycheck. A bar past the marker means that date's payments are bigger than one paycheck.</p>
+  </aside>
+</div>
+<div class="sr" id="sr" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+/* ================= basics ================= */
+const DATES=["Today","Dec 12","Dec 26","Jan 9","Jan 23","Feb 6"];
+const LATE=25,SHIFT=70;
+const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const c2=n=>Math.round(n*100)/100;
+const money=n=>{const r=c2(n),a=Math.abs(r);return (r<0?"-":"")+"$"+(Number.isInteger(a)?a:a.toFixed(2))};
+const say$=n=>{const r=c2(Math.abs(n));return Number.isInteger(r)?r+" dollars":r.toFixed(2)+" dollars"};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const $=id=>document.getElementById(id);
+
+/* ---- decor: lights and snow ---- */
+(function(){
+  $("lights").innerHTML=Array.from({length:30},()=>'<span class="bulb"></span>').join("");
+  if(reduced)return;
+  $("snow").innerHTML=Array.from({length:26},(_,i)=>`<span class="flake" style="left:${Math.random()*100}%;font-size:${10+Math.random()*14}px;animation-duration:${9+Math.random()*10}s;animation-delay:${-Math.random()*15}s">&#10052;</span>`).join("");
+})();
+
+/* ================= avatars ================= */
+let clipN=0;
+function av(o,mood,size,cls){
+  o=Object.assign({skin:"#f1c27d",hair:"#3b2a20",style:"short",shirt:"#0b6e6e",bg:"#dbe7f3",cap:false,hat:false},o);
+  const id="c"+(++clipN);
+  let back="";
+  if(o.style==="long")back=`<path d="M25 46 Q22 16 50 16 Q78 16 75 46 L78 80 L22 80Z" fill="${o.hair}"/>`;
+  if(o.style==="braids")back=`<path d="M25 46 Q22 16 50 16 Q78 16 75 46 L77 70 L23 70Z" fill="${o.hair}"/><path d="M29 58 L28 86 M37 62 L36 88 M63 62 L64 88 M71 58 L72 86" stroke="${o.hair}" stroke-width="5" stroke-linecap="round"/>`;
+  if(o.style==="afro")back=[[28,36],[38,22],[52,18],[66,22],[74,36],[24,50],[76,50],[50,28]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="14" fill="${o.hair}"/>`).join("");
+  if(o.style==="ponytail")back=`<path d="M70 34 Q92 38 88 62 Q84 50 72 46Z" fill="${o.hair}"/>`;
+  let front="";
+  if(o.style==="buzz")front=`<path d="M28 42 Q28 24 50 23 Q72 24 72 42 Q64 34 50 33 Q36 34 28 42Z" fill="${o.hair}"/>`;
+  if(o.style==="afro")front=`<path d="M28 42 Q30 28 50 27 Q70 28 72 42 Q64 33 50 32 Q36 33 28 42Z" fill="${o.hair}"/>`;
+  if(o.style==="braids")front=`<path d="M27 46 Q25 20 50 20 Q75 20 73 46 Q68 33 50 31 Q32 33 27 46Z" fill="${o.hair}"/>`;
+  if(o.style==="short"||o.style==="long"||o.style==="bun"||o.style==="ponytail")front=`<path d="M27 46 Q25 20 50 20 Q75 20 73 46 Q68 33 50 31 Q32 33 27 46Z" fill="${o.hair}"/>`;
+  if(o.style==="bun")front+=`<circle cx="50" cy="15" r="9" fill="${o.hair}"/>`;
+  if(o.style==="curly")front=[[32,30],[44,23],[56,23],[68,30],[28,42],[72,42]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="10" fill="${o.hair}"/>`).join("");
+  let hat="";
+  if(o.cap)hat=`<path d="M25 40 Q27 14 50 14 Q73 14 75 40Z" fill="#c0392b"/><rect x="25" y="37" width="62" height="6" rx="3" fill="#a93226"/><circle cx="50" cy="12" r="5" fill="#fff"/>`;
+  if(o.hat)hat=`<path d="M26 40 Q50 -10 74 40Z" fill="#c0392b"/><rect x="24" y="36" width="52" height="9" rx="4" fill="#fff"/><circle cx="52" cy="2" r="6" fill="#fff"/>`;
+  let brows,mouth,extra="";
+  if(mood==="happy"){brows=`<path d="M36 37 L45 37 M55 37 L64 37" stroke="#222" stroke-width="2" stroke-linecap="round"/>`;mouth=`<path d="M41 55 Q50 65 59 55" stroke="#222" stroke-width="2.5" fill="#fff" stroke-linecap="round"/>`}
+  else if(mood==="worried"){brows=`<path d="M36 40 L45 36 M64 40 L55 36" stroke="#222" stroke-width="2" stroke-linecap="round"/>`;mouth=`<path d="M42 60 Q50 53 58 60" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;extra=`<path class="drop" d="M73 36 Q77 44 73 47 Q69 44 73 36Z" fill="#5aa9e6"/>`}
+  else if(mood==="shocked"){brows=`<path d="M36 35 L45 33 M64 35 L55 33" stroke="#222" stroke-width="2" stroke-linecap="round"/>`;mouth=`<ellipse cx="50" cy="59" rx="5" ry="6" fill="#5b1a1a"/>`}
+  else{brows=`<path d="M36 38 L45 38 M55 38 L64 38" stroke="#222" stroke-width="2" stroke-linecap="round"/>`;mouth=`<path d="M43 57 L57 57" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>`}
+  return `<svg class="av ${cls||""}" viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true" focusable="false">
+   <defs><clipPath id="${id}"><circle cx="50" cy="50" r="50"/></clipPath></defs>
+   <g clip-path="url(#${id})"><rect width="100" height="100" fill="${o.bg}"/>${back}
+   <path d="M10 100 Q12 76 38 72 L62 72 Q88 76 90 100Z" fill="${o.shirt}"/>
+   <rect x="43" y="62" width="14" height="14" fill="${o.skin}"/>
+   <circle cx="50" cy="46" r="23" fill="${o.skin}"/>${o.beard?`<path d="M31 52 Q31 73 50 73 Q69 73 69 52 Q61 67 50 67 Q39 67 31 52Z" fill="${o.hair}"/>`:""}${front}${hat}
+   <g class="eyes"><circle cx="41" cy="46" r="2.8" fill="#1b2430"/><circle cx="59" cy="46" r="2.8" fill="#1b2430"/></g>
+   ${o.glasses?`<g fill="none" stroke="#222" stroke-width="2"><circle cx="41" cy="46" r="7"/><circle cx="59" cy="46" r="7"/><path d="M48 46 L52 46"/></g>`:""}${brows}${mouth}${extra}</g></svg>`;
+}
+const mk=(skin,hair,style,shirt,more)=>Object.assign({skin,hair,style,shirt},more||{});
+const AVATARS=[
+  {label:"Woman 1",o:mk("#6f4518","#1b1b1b","afro","#0b6e6e")},
+  {label:"Woman 2",o:mk("#a86b3c","#111","braids","#b45309")},
+  {label:"Woman 3",o:mk("#c68642","#111","long","#7a3e9d")},
+  {label:"Woman 4",o:mk("#d8a46a","#4a2c17","bun","#334155")},
+  {label:"Woman 5",o:mk("#f3d2a2","#111","ponytail","#c2570c")},
+  {label:"Woman 6",o:mk("#ffdbac","#e8c547","long","#1d4ed8")},
+  {label:"Man 1",o:mk("#6f4518","#111","short","#2f855a",{beard:true})},
+  {label:"Man 2",o:mk("#a86b3c","#111","curly","#a4161a",{glasses:true})},
+  {label:"Man 3",o:mk("#c68642","#111","short","#0b6e6e")},
+  {label:"Man 4",o:mk("#d8a46a","#222","buzz","#c2570c")},
+  {label:"Man 5",o:mk("#f3d2a2","#111","short","#7a3e9d",{glasses:true})},
+  {label:"Man 6",o:mk("#ffdbac","#d9a441","short","#1d4ed8")}
+];
+const SALES=mk("#e0ac69","#222","short","#c0392b",{hat:true,bg:"#fde8e8"});
+let ME=AVATARS[0].o;
+
+/* ================= music and sound ================= */
+let actx=null,master=null,trackGain=null,musicTimer=null,curTrack="",musicOn=true,sfxOn=true,speakOn=true,speaking=false;
+const MVOL=.08;
+function ensureCtx(){
+  if(actx)return;
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  actx=new AC();master=actx.createGain();master.gain.value=MVOL;master.connect(actx.destination);
+}
+const NF=n=>{const m=/^([A-G])(#?)(\d)$/.exec(n);const base={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1]]+(m[2]?1:0);return 440*Math.pow(2,((base+(+m[3]+1)*12)-69)/12)};
+const TRACKS={
+  jingle:{bpm:156,n:[["E4",1],["E4",1],["E4",2],["E4",1],["E4",1],["E4",2],["E4",1],["G4",1],["C4",1.5],["D4",.5],["E4",4],["F4",1],["F4",1],["F4",1.5],["F4",.5],["F4",1],["E4",1],["E4",1],["E4",.5],["E4",.5],["E4",1],["D4",1],["D4",1],["E4",1],["D4",2],["G4",2],
+    ["E4",1],["E4",1],["E4",2],["E4",1],["E4",1],["E4",2],["E4",1],["G4",1],["C4",1.5],["D4",.5],["E4",4],["F4",1],["F4",1],["F4",1],["F4",1],["F4",1],["E4",1],["E4",1],["E4",.5],["E4",.5],["G4",1],["G4",1],["F4",1],["D4",1],["C4",4]]},
+  wish:{bpm:150,n:[["D4",1],["G4",1],["G4",.5],["A4",.5],["G4",.5],["F#4",.5],["E4",1],["E4",1],["E4",1],["A4",1],["A4",.5],["B4",.5],["A4",.5],["G4",.5],["F#4",1],["D4",1],["D4",1],["B4",1],["B4",.5],["C5",.5],["B4",.5],["A4",.5],["G4",1],["E4",1],["D4",.5],["D4",.5],["E4",1],["A4",1],["F#4",1],["G4",2],["R",1]]},
+  silent:{bpm:92,e:true,n:[["G4",3],["A4",1],["G4",2],["E4",6],["G4",3],["A4",1],["G4",2],["E4",6],["D5",4],["D5",2],["B4",6],["C5",4],["C5",2],["G4",6],["A4",4],["A4",2],["C5",3],["B4",1],["A4",2],["G4",3],["A4",1],["G4",2],["E4",6],["A4",4],["A4",2],["C5",3],["B4",1],["A4",2],["G4",3],["A4",1],["G4",2],["E4",6],["D5",4],["D5",2],["F5",3],["D5",1],["B4",2],["C5",6],["E5",6],["C5",2],["G4",2],["E4",2],["G4",3],["F4",1],["D4",2],["C4",12],["R",4]]}
+};
+function stopTrack(){
+  clearTimeout(musicTimer);
+  if(trackGain&&actx){try{trackGain.gain.setTargetAtTime(0,actx.currentTime,.1)}catch(e){}}
+  trackGain=null;curTrack="";
+}
+function playTrack(name){
+  if(!musicOn)return;ensureCtx();if(!actx)return;
+  if(curTrack===name)return;
+  stopTrack();
+  if(actx.state==="suspended")actx.resume();
+  curTrack=name;
+  const T=TRACKS[name],sec=60/T.bpm*(T.e?.5:1);
+  const g=actx.createGain();g.gain.value=1;g.connect(master);trackGain=g;
+  let t=actx.currentTime+.15;
+  T.n.forEach(([nt,b])=>{
+    const d=b*sec;
+    if(nt!=="R"){
+      const f=NF(nt);
+      [["triangle",1,.55],["sine",2,.18]].forEach(([ty,mul,vol])=>{
+        const o=actx.createOscillator(),e=actx.createGain();o.type=ty;o.frequency.value=f*mul;
+        e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(vol,t+.02);e.gain.exponentialRampToValueAtTime(.001,t+Math.max(d*1.1,.25));
+        o.connect(e);e.connect(g);o.start(t);o.stop(t+d*1.2+.2);
+      });
+    }
+    t+=d;
+  });
+  musicTimer=setTimeout(()=>{const n=curTrack;curTrack="";playTrack(n)},(t-actx.currentTime)*1000);
+}
+function duck(on){if(master&&actx)master.gain.setTargetAtTime(on?MVOL*.25:MVOL,actx.currentTime,.15)}
+function tone(f,t0,d,type,vol){
+  if(!sfxOn)return;ensureCtx();if(!actx)return;
+  const t=actx.currentTime+t0,o=actx.createOscillator(),e=actx.createGain();
+  o.type=type||"sine";o.frequency.value=f;e.gain.setValueAtTime(vol||.12,t);e.gain.exponentialRampToValueAtTime(.001,t+d);
+  o.connect(e);e.connect(actx.destination);o.start(t);o.stop(t+d+.05);
+}
+const sfx={
+  cha(){tone(1046,0,.18);tone(1568,.12,.4)},
+  pop(){tone(660,0,.12,"triangle")},
+  buzz(){tone(140,0,.35,"sawtooth",.1)},
+  bell(){tone(880,0,.5);tone(1320,.05,.5,"sine",.06)},
+  fan(){[523,659,784,1046].forEach((f,i)=>tone(f,i*.14,.35,"triangle",.12))}
+};
+$("mus").onclick=function(){musicOn=!musicOn;this.setAttribute("aria-pressed",musicOn);this.textContent="Music: "+(musicOn?"On":"Off");
+  if(musicOn)playTrack(wantTrack);else stopTrack()};
+$("sfx").onclick=function(){sfxOn=!sfxOn;this.setAttribute("aria-pressed",sfxOn);this.textContent="Effects: "+(sfxOn?"On":"Off")};
+let wantTrack="jingle";
+function music(n){wantTrack=n;playTrack(n)}
+
+/* ================= narration ================= */
+let voice=null,lastText="";
+function pickVoice(){
+  const v=speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang));
+  for(const p of [/natural/i,/aria|jenny|guy/i,/samantha|ava|allison|serena/i,/google us english/i,/google uk english female/i]){const f=v.find(x=>p.test(x.name));if(f){voice=f;return}}
+  voice=v[0]||null;
+}
+if("speechSynthesis" in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function speak(t,force){
+  lastText=t;
+  if((!speakOn&&!force)||!("speechSynthesis" in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);if(voice)u.voice=voice;u.rate=.93;
+  u.onstart=()=>duck(true);u.onend=u.onerror=()=>duck(false);
+  speechSynthesis.speak(u);
+}
+function announce(t){$("sr").textContent=t}
+$("narr").onclick=function(){speakOn=!speakOn;this.setAttribute("aria-pressed",speakOn);this.textContent="Narration: "+(speakOn?"On":"Off");
+  if(!speakOn&&"speechSynthesis" in window){speechSynthesis.cancel();duck(false)}else speak(lastText)};
+$("replay").onclick=()=>speak(lastText,true);
+
+/* ================= data ================= */
+const R=(n,likes,o)=>({n,likes,av:o});
+const SCN=[
+ {id:"saved",name:"Saved Up",cash:500,pay:60,shifts:2,
+  blurb:"You saved $500 and each paycheck leaves $60 of spending money. Six people on your list.",
+  recips:[R("Brother",["tech","fun"],mk("#6f4518","#111","short","#2f855a",{beard:true})),R("Mom",["cozy","style"],mk("#d8a46a","#6b4423","bun","#c05621")),
+   R("Best friend",["style","tech"],mk("#a86b3c","#111","braids","#d53f8c")),R("Cousin",["fun"],mk("#f3d2a2","#111","short","#dd6b20")),
+   R("Aunt",["cozy"],mk("#6f4518","#999","afro","#805ad5")),R("Coworker",["cozy","fun"],mk("#ffdbac","#222","bald","#4a5568",{glasses:true}))]},
+ {id:"tight",name:"Tight Budget",cash:300,pay:45,shifts:3,
+  blurb:"You have $300 saved and each paycheck leaves $45. Six people on your list, and money is tight.",
+  recips:[R("Little sister",["fun","style"],mk("#f3d2a2","#111","ponytail","#d53f8c")),R("Grandma",["cozy"],mk("#e0ac69","#bbb","curly","#805ad5",{glasses:true})),
+   R("Partner",["tech","style"],mk("#a86b3c","#1b1b1b","short","#2b6cb0",{beard:true})),R("Roommate",["fun","cozy"],mk("#d8a46a","#4a2c17","long","#2f855a")),
+   R("Dad",["tech"],mk("#ffdbac","#555","short","#4a5568",{beard:true})),R("Best friend",["style"],mk("#6f4518","#111","afro","#dd6b20"))]},
+ {id:"big",name:"Big Family",cash:450,pay:55,shifts:2,
+  blurb:"You have $450 saved and each paycheck leaves $55. Eight people on your list, so choices will be harder.",
+  recips:[R("Mom",["cozy","style"],mk("#a86b3c","#6b4423","bun","#c05621")),R("Dad",["tech"],mk("#6f4518","#555","buzz","#4a5568")),
+   R("Brother",["tech","fun"],mk("#d8a46a","#222","short","#2f855a")),R("Sister",["style","fun"],mk("#ffdbac","#4a2c17","long","#d53f8c")),
+   R("Grandpa",["cozy"],mk("#e0ac69","#ccc","bald","#2b6cb0",{glasses:true})),R("Grandma",["cozy","food"],mk("#d8a46a","#bbb","bun","#805ad5")),
+   R("Cousin",["fun","tech"],mk("#f3d2a2","#111","short","#dd6b20")),R("Neighbor",["style","cozy"],mk("#a86b3c","#111","braids","#2f855a"))]}
+];
+const STORES=[
+ {id:"tech",name:"Tech Zone",tag:"tech",c1:"#1d4ed8",items:[
+   {n:"Wireless earbuds",price:120,was:160,joy:8,fee:0,press:"Only 3 left in stock. Prices go up tomorrow."},
+   {n:"Fitness smartwatch",price:160,was:220,joy:9,fee:6,press:"Deal ends at midnight."},
+   {n:"Bluetooth speaker",price:75,was:100,joy:7,fee:4,press:"Added to 14 carts this hour."}]},
+ {id:"style",name:"Style Corner",tag:"style",c1:"#a4161a",items:[
+   {n:"Wool sweater",price:65,was:80,joy:7,fee:0,press:"Free shipping ends tonight."},
+   {n:"Limited edition sneakers",price:140,was:180,joy:9,fee:0,press:"Last pair in this size."},
+   {n:"Scarf and glove set",price:35,was:45,joy:6,fee:0,press:"Holiday bundle price."}]},
+ {id:"fun",name:"Fun Factory",tag:"fun",c1:"#0f5c36",items:[
+   {n:"Board game bundle",price:45,was:60,joy:7,fee:0,press:"Bundle price for today only."},
+   {n:"Building set",price:90,was:120,joy:8,fee:5,press:"Hot gift of the season."},
+   {n:"Karaoke microphone",price:55,was:70,joy:7,fee:0,press:"Two left at this price."}]},
+ {id:"cozy",name:"Cozy and Cook",tag:"cozy",c1:"#9a4a05",items:[
+   {n:"Candle and blanket set",price:50,was:65,joy:7,fee:0,press:"Gift wrapping is free today."},
+   {n:"Cookie baking kit",price:30,was:30,joy:6,fee:0,press:"Perfect last-minute gift."},
+   {n:"Spa gift set",price:85,was:110,joy:8,fee:4,press:"Limited holiday edition."}]},
+ {id:"cards",name:"Gift Card Kiosk",tag:"",c1:"#6b21a8",items:[
+   {n:"$25 gift card",price:25,was:25,joy:5,fee:0,press:"Add to cart in one click."},
+   {n:"$50 gift card",price:50,was:50,joy:6,fee:0,press:"Add to cart in one click."}]}
+];
+const MEV=[
+ {id:"group",title:"Group gift text",ic:"fun",text:"Your friends are chipping in on a group gift for a favorite teacher. Your share is $20.",
+  opts:[{t:"Chip in: $20 cash today",need:20,go(){S.cash=c2(S.cash-20);S.extraJoy+=6;return "You chipped in $20. The group gift is a hit."}},
+        {t:"Skip it",go(){return "You skipped the group gift."}}]},
+ {id:"promo",title:"Pop-up offer",ic:"sale",text:"A pop-up offers 20% off your next purchase, but only if you check out with Pay in 4 or Pay in 6.",
+  opts:[{t:"Claim the offer",go(){S.promo={pct:.2};return "Offer claimed. Your next purchase is 20% off with Pay in 4 or Pay in 6."}},
+        {t:"No thanks",go(){return "No thanks. You will pay regular prices."}}]},
+ {id:"secret",title:"Secret Santa reminder",ic:"gift",text:"You drew a name for the office Secret Santa. The suggested spending limit is $25.",
+  opts:[{t:"Buy the gift: $25 cash today",need:25,go(){S.cash=c2(S.cash-25);S.extraJoy+=5;return "Secret Santa gift bought for $25."}},
+        {t:"Skip it",go(){S.extraJoy-=4;return "Skipping Secret Santa is a little awkward. Holiday joy drops."}}]},
+ {id:"food",title:"Food court invitation",ic:"food",text:"Friends are grabbing lunch at the food court. Your share is $14.",
+  opts:[{t:"Join them: $14 cash today",need:14,go(){S.cash=c2(S.cash-14);S.extraJoy+=3;return "Lunch with friends cost $14 and was a great break."}},
+        {t:"Pass this time",go(){return "You passed on lunch."}}]}
+];
+
+/* ================= state ================= */
+let S;
+function newGame(i){
+  const c=SCN[i];
+  S={scn:c,cash:c.cash,pay:c.pay,shifts:c.shifts,gifts:[],filled:{},fees:0,extraJoy:0,promo:null,carry:0,bills:[0,0,0,0,0,0],
+     visits:0,visited:{},mev:shuffle(MEV).slice(0,2),protAsked:false,protected:false,log:[],lateFees:0,shown:c.cash,
+     rev:[],k:0,mood:"happy",line:"Time to shop!"};
+  const pool=shuffle(["birthday","bonus","broken","utility"]).slice(0,3).concat(["car"]);
+  S.rev=shuffle(pool);
+}
+const active=()=>S.gifts.filter(g=>g.active);
+const joyNow=()=>active().reduce((a,g)=>a+g.joy,0)+S.extraJoy;
+const maxJoy=()=>S.scn.recips.length*14;
+const joyPct=()=>Math.max(0,Math.min(100,Math.round(joyNow()/maxJoy()*100)));
+function schedSum(j){return c2(active().reduce((a,g)=>a+g.sched[j],0)+S.bills[j])}
+function futureTotal(from){let t=S.carry;for(let j=from;j<6;j++)t+=schedSum(j);return t}
+function moodNow(){
+  if(S.cash<0)return"worried";
+  const strain=futureTotal(1)/(S.pay*5+Math.max(S.cash,0)+1);
+  if(strain>.8)return"worried";if(strain<.35)return"happy";return"neutral";
+}
+
+/* ================= dashboard ================= */
+function tree(n){
+  const cols=["#c0392b","#2563eb","#d4a017","#7c3aed","#0f766e","#db2777"];
+  let gifts="";const m=Math.min(n,10);
+  for(let i=0;i<m;i++){const x=14+i*17,h=14+(i%3)*5,c=cols[i%6];
+    gifts+=`<g style="animation:pop .5s ease"><rect x="${x}" y="${112-h}" width="15" height="${h}" fill="${c}"/><rect x="${x+6}" y="${112-h}" width="3" height="${h}" fill="#fff"/><rect x="${x}" y="${112-h+5}" width="15" height="3" fill="#fff"/></g>`}
+  return `<svg viewBox="0 0 200 124" width="170" height="105" focusable="false" aria-hidden="true">
+   <polygon points="100,6 140,52 60,52" fill="#2d9d55"/><polygon points="100,28 160,80 40,80" fill="#23894a"/><polygon points="100,50 176,104 24,104" fill="#1c7a40"/>
+   <rect x="92" y="100" width="16" height="12" fill="#6b4423"/>
+   <polygon class="star" points="100,-2 104,8 114,8 106,14 109,24 100,18 91,24 94,14 86,8 96,8" fill="#ffd54a"/>
+   <circle class="orn" cx="92" cy="40" r="4" fill="#e53e3e"/><circle class="orn" cx="110" cy="62" r="4" fill="#3b82f6" style="animation-delay:.5s"/>
+   <circle class="orn" cx="80" cy="76" r="4" fill="#ffd54a" style="animation-delay:1s"/><circle class="orn" cx="122" cy="88" r="4" fill="#e53e3e" style="animation-delay:.3s"/>
+   <circle class="orn" cx="70" cy="96" r="4" fill="#3b82f6" style="animation-delay:.8s"/><circle class="orn" cx="106" cy="98" r="4" fill="#ffd54a" style="animation-delay:1.3s"/>
+   ${gifts}</svg>`;
+}
+let shownCash=null;
+function countTo(el,to){
+  const from=shownCash===null?to:shownCash;shownCash=to;
+  if(reduced||from===to){el.textContent=money(to);return}
+  const t0=performance.now();
+  (function f(t){const p=Math.min(1,(t-t0)/600);el.textContent=money(from+(to-from)*p);if(p<1)requestAnimationFrame(f)})(t0);
+}
+function coins(n){
+  if(reduced)return;
+  const box=$("d-coins");
+  for(let i=0;i<n;i++){const s=document.createElement("span");s.className="coin";
+    s.style.left=(10+Math.random()*60)+"px";s.style.top="6px";
+    s.style.setProperty("--dx",(Math.random()*60-30)+"px");s.style.setProperty("--dy",(-30-Math.random()*30)+"px");
+    box.appendChild(s);setTimeout(()=>s.remove(),1000)}
+}
+function dash(line){
+  S.mood=moodNow();
+  const lines={happy:"Feeling good about this.",neutral:"Keeping an eye on things.",worried:"Those payments are adding up."};
+  $("d-av").innerHTML=av(ME,S.mood,64);
+  $("d-say").textContent=line||lines[S.mood];
+  const c=$("d-cash");c.className="big"+(S.cash<0?" neg":"");countTo(c,S.cash);
+  $("d-joytxt").textContent=joyPct()+"%";$("d-joy").style.width=joyPct()+"%";
+  $("d-fees").textContent=money(S.fees);
+  $("d-cart").innerHTML=active().map(g=>`<li><span>${g.item.n} (${S.scn.recips[g.who].n})</span><span>${g.label}</span></li>`).join("")||'<li><span>Nothing yet</span><span></span></li>';
+  $("d-tree").innerHTML=tree(active().length);
+  const t=$("d-time");
+  t.innerHTML=DATES.slice(1).map((d,i)=>{
+    const j=i+1,due=schedSum(j)+(j===Math.max(1,S.k)?S.carry:0),pct=Math.min(100,due/(S.pay*2)*100);
+    return `<div style="margin:8px 0"><div class="stat" style="border:0;padding:0"><span>${d}</span><strong>${money(due)}</strong></div>
+    <div class="track" aria-hidden="true"><div class="bar ${due>S.pay?"hot":""}" data-w="${pct}"></div><div class="mark" style="left:50%"></div></div></div>`}).join("");
+  requestAnimationFrame(()=>t.querySelectorAll(".bar").forEach(b=>b.style.width=b.dataset.w+"%"));
+}
+
+/* ================= confetti ================= */
+function confetti(){
+  if(reduced)return;
+  const cols=["#c0392b","#2563eb","#d4a017","#16a34a","#db2777"];
+  for(let i=0;i<60;i++){const d=document.createElement("div");d.className="conf";
+    d.style.left=Math.random()*100+"vw";d.style.background=cols[i%5];d.style.animationDuration=(2+Math.random()*2.5)+"s";d.style.animationDelay=Math.random()*.8+"s";
+    document.body.appendChild(d);setTimeout(()=>d.remove(),5500)}
+}
+
+/* ================= screen helper ================= */
+const stage=$("stage");
+function show(html,text){
+  stage.innerHTML=html;
+  const h=stage.querySelector("h2");if(h){h.tabIndex=-1;h.focus({preventScroll:true})}
+  window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
+  speak(text);
+}
+function fbNext(m,label,fn,mood){
+  const f=$("fb");
+  f.innerHTML=`<div class="fb">${mood?av(mood.o,mood.m,46):""}<div>${m}</div></div><button class="primary" id="nx">${label}</button>`;
+  announce(m);speak(m);
+  const n=$("nx");n.onclick=fn;n.focus();
+}
+function lock(sel,c){stage.querySelectorAll(sel).forEach(x=>{x.setAttribute("aria-disabled","true");x.disabled=true;if(c&&x===c)x.classList.add("good")})}
+
+/* ================= intro screens ================= */
+function warmup(){
+  const text="Warm Up. A two hundred dollar purchase is split into four payments of fifty dollars. Which statement is true?";
+  show(`<h2>Warm Up</h2>
+  <p class="lead">A $200 purchase is split into four payments of $50. Which statement is true?</p>
+  <div id="wq">
+   <button class="opt" data-k="0"><strong>It costs less than $200, because each payment is small.</strong></button>
+   <button class="opt" data-k="1"><strong>It still costs $200, plus any fees, and the money still has to come from your paychecks.</strong></button>
+   <button class="opt" data-k="2"><strong>It always costs more than $200, because every installment plan charges interest.</strong></button>
+  </div><div id="wfb"></div>`,text);
+  stage.querySelectorAll("#wq .opt").forEach(b=>b.onclick=()=>{
+    ensureCtx();if(actx&&actx.state==="suspended")actx.resume();
+    const ok=b.dataset.k==="1";
+    stage.querySelectorAll("#wq .opt").forEach(x=>{x.setAttribute("aria-disabled","true");x.disabled=true;if(x.dataset.k==="1")x.classList.add("good")});
+    if(!ok)b.classList.add("bad");
+    const m=ok?"Correct. Smaller payments do not change the price. They only change when the money leaves your account. Many plans charge no interest, but some add fees, and a missed payment can add more."
+      :"Not quite. The price stays at two hundred dollars, plus any fees. Many plans charge no interest, but some add fees, and a missed payment can add more. Smaller payments only change when the money leaves your account.";
+    sfx[ok?"cha":"buzz"]();music("jingle");
+    $("wfb").innerHTML=`<div class="fb" role="status">${m}</div><button class="primary" id="go">Continue</button>`;
+    announce(m);speak(m);$("go").onclick=pickAvatar;$("go").focus();
+  });
+}
+function pickAvatar(){
+  show(`<h2>Choose Your Shopper</h2><p class="lead">Pick who will be walking the mall today.</p>
+  <div class="grid" id="ag" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">${AVATARS.map((a,i)=>`<button class="opt" data-i="${i}" aria-label="${a.label}">${av(a.o,"happy",84)}</button>`).join("")}</div>`,
+  "Choose your shopper. Pick who will be walking the mall today.");
+  stage.querySelectorAll("#ag .opt").forEach(b=>b.onclick=()=>{ME=AVATARS[+b.dataset.i].o;sfx.pop();pickScenario()});
+}
+function pickScenario(){
+  show(`<h2>Choose Your Situation</h2><p class="lead">Every shopper starts with a different budget. Pick one. You can replay with another later.</p>
+  <div id="sg">${SCN.map((s,i)=>`<button class="opt" data-i="${i}"><strong>${s.name}</strong><small>${s.blurb}</small></button>`).join("")}</div>`,
+  "Choose your situation. Every shopper starts with a different budget. Pick one. You can replay with another later.");
+  stage.querySelectorAll("#sg .opt").forEach(b=>b.onclick=()=>{newGame(+b.dataset.i);shownCash=null;sfx.pop();intro()});
+}
+function intro(){
+  dash("Let us go shopping!");
+  const rc=S.scn.recips;
+  const text=`Here is your trip. It is the Friday after Thanksgiving. You have ${say$(S.cash)} saved, and every paycheck through early February leaves you ${say$(S.pay)} of spending money. Walk the mall, buy gifts for the people on your list, and choose how to pay. Then you will live through five paychecks and find out whether you can pay it all back. Watch for surprises.`;
+  show(`<h2>Welcome to the Mall</h2>
+  <p><strong>By the end of this lesson, you will learn:</strong></p>
+  <ul class="goals"><li>why four small payments are not a lower price</li><li>how installment plans claim your future paychecks</li><li>how to cover a shortfall without making it worse</li></ul>
+  <p class="lead">You have <strong>${money(S.cash)}</strong> saved. Each paycheck from Dec 12 through Feb 6 leaves you <strong>${money(S.pay)}</strong> of spending money.</p>
+  <h3>Your gift list</h3>
+  <div class="grid">${rc.map(r=>`<div class="reci">${av(r.av,"happy",48)}<span><strong>${r.n}</strong><br><small>Likes: ${r.likes.join(", ")}</small></span></div>`).join("")}</div>
+  <p>Buy one gift per person. A gift in a category the person likes brings more joy. You can pay in full, in 4, or in 6, and surprises will come up along the way.</p>
+  <button class="primary" id="go">Enter the mall</button>`,text);
+  $("go").onclick=mall;
+}
+
+/* ================= mall ================= */
+function mall(){
+  music("jingle");
+  const left=S.scn.recips.filter((r,i)=>S.filled[i]===undefined).length;
+  const text=`The mall. You have ${say$(S.cash)} in cash and ${left} ${left===1?"person":"people"} left on your list. Choose a store to visit, or head to the checkout counter when you are done.`;
+  dash();
+  show(`<h2>The Mall</h2>
+  <p class="lead">Cash today: <strong>${money(S.cash)}</strong>. People left on your list: <strong>${left}</strong>. Choose a store, or head to checkout when you are done.</p>
+  <div class="mall" id="mall">
+   ${STORES.map(s=>{const n=active().filter(g=>g.store===s.id).length;return `<button class="store" data-s="${s.id}" style="--c1:${s.c1}"><div class="awn" aria-hidden="true"></div><strong>${s.name}</strong>
+     <small>${s.items.length} gifts</small><small class="tick">${n?n+" bought here":(S.visited[s.id]?"Visited":"")}</small></button>`}).join("")}
+   <button class="store co" data-s="checkout" style="--c1:#b8860b"><div class="awn" aria-hidden="true"></div><strong>Checkout Counter</strong><small>See what you really owe</small></button>
+   <div class="mallfloor" aria-hidden="true"></div><div class="token" id="token" aria-hidden="true">${av(ME,"happy",56)}</div>
+  </div>`,text);
+  const m=$("mall"),tk=$("token");
+  tk.style.left=(m.clientWidth/2-28)+"px";tk.style.top=(m.clientHeight-62)+"px";
+  stage.querySelectorAll(".store").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.s;sfx.bell();
+    const go=()=>{if(id==="checkout")checkout();else enterStore(id)};
+    if(reduced){go();return}
+    const mr=m.getBoundingClientRect(),br=b.getBoundingClientRect();
+    tk.style.left=(br.left-mr.left+br.width/2-28)+"px";tk.style.top=(br.bottom-mr.top-34)+"px";
+    stage.querySelectorAll(".store").forEach(x=>x.disabled=true);
+    setTimeout(go,620);
+  });
+}
+function enterStore(id){
+  const st=STORES.find(s=>s.id===id);
+  if(!S.visited[id]){S.visited[id]=true}S.visits++;
+  const text=`Welcome to ${st.name}. Choose a gift to look at.`;
+  show(`<h2>${st.name}</h2><p class="lead">Cash today: <strong>${money(S.cash)}</strong></p>
+  <div id="items">${st.items.map((it,i)=>{const bought=active().some(g=>g.item===it);
+    return `<button class="opt" data-i="${i}" ${bought?'aria-disabled="true" disabled':""}><strong>${it.n} &middot; ${money(it.price)}${it.was>it.price?` <span class="was"><span class="sr">was </span>${money(it.was)}</span>`:""}</strong>
+    <small>${bought?"In your cart":it.press}</small></button>`}).join("")}</div>
+  <button class="secondary" id="back">Back to the mall map</button>`,text);
+  stage.querySelectorAll("#items .opt").forEach(b=>b.onclick=()=>itemScreen(st,+b.dataset.i));
+  $("back").onclick=leaveStore;
+}
+function leaveStore(){
+  if(S.visits===2||S.visits===4){const ev=S.mev[S.visits/2-1];if(ev&&!ev.done){ev.done=true;return mallEvent(ev)}}
+  mall();
+}
+function mallEvent(ev){
+  const text=`${ev.title}. ${ev.text.replace(/\$(\d+)/g,"$1 dollars")}`;
+  sfx.bell();
+  show(`<h2>${ev.title}</h2><div class="fb warn">${av(SALES,"happy",54)}<div>${ev.text}</div></div>
+  <div id="eo">${ev.opts.map((o,i)=>{const dis=o.need&&S.cash<o.need;return `<button class="opt" data-i="${i}" ${dis?'aria-disabled="true"':""}><strong>${o.t}</strong>${dis?"<small>Not enough cash today.</small>":""}</button>`}).join("")}</div><div id="fb"></div>`,text);
+  stage.querySelectorAll("#eo .opt").forEach(b=>b.onclick=()=>{
+    if(b.getAttribute("aria-disabled")==="true"){announce("Not enough cash today.");return}
+    const m=ev.opts[+b.dataset.i].go();lock("#eo .opt",b);sfx.cha();coins(5);dash();fbNext(m,"Back to the mall map",mall);
+  });
+}
+
+/* ================= item and payment ================= */
+function planOptions(it){
+  const promo=S.promo,pct=promo?promo.pct:0;
+  const base4=c2(it.price*(1-pct));
+  const out=[];
+  out.push({k:"full",label:"Pay in full today",pays:[it.price,0,0,0,0,0],total:it.price,fee:0,now:it.price,
+    sub:`Paid from cash now. Total ${money(it.price)}.`});
+  const q=c2(base4/4),last=c2(base4-q*3);
+  out.push({k:"four",label:`Pay in 4: ${money(q)} per payment`,pays:[c2(q+it.fee),q,q,last,0,0],total:c2(base4+it.fee),fee:c2(it.fee-(it.price-base4)),now:c2(q+it.fee),
+    sub:`${money(q+it.fee)} today, then ${money(q)} on Dec 12, Dec 26, and Jan 9. Total ${money(base4+it.fee)}${pct?` (includes your 20% offer)`:""}${it.fee?`, including a ${money(it.fee)} service fee`:""}.`});
+  if(it.price>=90){
+    const tot=c2(base4*1.08),s=c2(tot/6),l=c2(tot-s*5);
+    out.push({k:"six",label:`Pay in 6: ${money(s)} per payment`,pays:[s,s,s,s,s,l],total:tot,fee:c2(tot-it.price),now:s,
+      sub:`${money(s)} today and at every paycheck through Feb 6. Total ${money(tot)}, which includes an 8% financing fee.`});
+  }
+  return out;
+}
+function itemScreen(st,i){
+  const it=st.items[i];let who=null;
+  const rc=S.scn.recips;
+  const text=`${it.n}, ${say$(it.price)}. ${it.press} Choose who this gift is for, then choose how to pay.`;
+  const free=rc.map((r,k)=>k).filter(k=>S.filled[k]===undefined);
+  function render(){
+    const opts=who===null?[]:planOptions(it);
+    stage.innerHTML=`<h2 tabindex="-1" id="ih">${it.n}</h2>
+    <div class="item"><div style="font-size:0"> </div><div><div class="price">${money(it.price)}${it.was>it.price?`<span class="was"><span class="sr">was </span>${money(it.was)}</span>`:""}</div>
+      <div><span class="pill">${st.tag?st.tag.toUpperCase():"GIFT CARD"}</span></div></div></div>
+    <div class="sales">${av(SALES,"happy",56)}<div class="bubble" id="bub"><strong>Flash says:</strong> ${it.press}</div></div>
+    <h3>Who is this gift for?</h3>
+    ${free.length?`<div class="grid" id="rg">${free.map(k=>{const r=rc[k],m=st.tag&&r.likes.includes(st.tag);
+      return `<button class="opt" data-k="${k}" aria-pressed="${who===k}">${av(r.av,"happy",52)}<strong>${r.n}</strong><small>Likes: ${r.likes.join(", ")}</small></button>`}).join("")}</div>`:"<p>Everyone on your list already has a gift.</p>"}
+    ${who===null?"":`<h3>How will you pay?</h3><div id="po">${opts.map(o=>{const dis=S.cash<o.now;
+      return `<button class="opt" data-p="${o.k}" ${dis?'aria-disabled="true"':""}><strong>${o.label}</strong><small>${dis?"Not enough cash today for the first payment.":o.sub}</small></button>`}).join("")}</div>
+      <button class="secondary" id="tc" aria-expanded="false">Show the true cost of each plan</button><div id="tcp"></div>
+      <p class="fine"><strong>Fine print:</strong> A missed payment adds a ${money(LATE)} late fee and the payment rolls to your next paycheck.${S.promo?" Your 20% offer applies to Pay in 4 and Pay in 6.":""}</p>`}
+    <div id="fb"></div><button class="secondary" id="back">Back to ${st.name}</button>`;
+    const h=$("ih");if(h&&who===null)h.focus({preventScroll:true});
+    stage.querySelectorAll("#rg .opt").forEach(b=>b.onclick=()=>{who=+b.dataset.k;sfx.pop();render();$("po")&&$("po").scrollIntoView({behavior:reduced?"auto":"smooth",block:"center"})});
+    stage.querySelectorAll("#po .opt").forEach(b=>b.onclick=()=>{
+      if(b.getAttribute("aria-disabled")==="true"){announce("Not enough cash today for that option.");return}
+      buy(st,it,who,opts.find(o=>o.k===b.dataset.p),b);
+    });
+    const tc=$("tc");if(tc)tc.onclick=()=>{
+      const open=tc.getAttribute("aria-expanded")==="true";tc.setAttribute("aria-expanded",!open);
+      $("tcp").innerHTML=open?"":`<table><caption class="sr">True cost of each plan</caption><thead><tr><th scope="col">Plan</th><th scope="col">Sticker price</th><th scope="col">Total you pay</th><th scope="col">Extra cost</th></tr></thead><tbody>${opts.map(o=>`<tr><th scope="row">${o.k==="full"?"Pay in full":o.k==="four"?"Pay in 4":"Pay in 6"}</th><td>${money(it.price)}</td><td>${money(o.total)}</td><td class="${o.total>it.price?"neg":""}">${o.total>it.price?"+"+money(o.total-it.price):o.total<it.price?"-"+money(it.price-o.total):"$0"}</td></tr>`).join("")}</tbody></table>`;
+    };
+    $("back").onclick=()=>enterStore(st.id);
+  }
+  render();speak(text);$("ih").focus({preventScroll:true});
+}
+function buy(st,it,who,o,btn){
+  const r=S.scn.recips[who];
+  const match=st.tag&&r.likes.includes(st.tag);
+  const joy=it.joy+(match?6:0);
+  const g={item:it,store:st.id,who,sched:o.pays.slice(),paid:0,carried:0,fee:Math.max(0,c2(o.total-(o.k==="full"?it.price:(o.total-(o.k==="four"?it.fee:o.total-it.price))))),joy,active:true,
+    label:o.k==="full"?"Paid":o.k==="four"?"Pay in 4":"Pay in 6",method:o.k,price:it.price,protected:false};
+  g.fee=o.k==="four"?it.fee:o.k==="six"?c2(o.total-(S.promo?c2(it.price*(1-S.promo.pct)):it.price)):0;
+  g.paid=g.sched[0];g.sched[0]=0;
+  S.cash=c2(S.cash-g.paid);S.fees=c2(S.fees+g.fee);S.filled[who]=S.gifts.length;S.gifts.push(g);
+  if(S.promo&&o.k!=="full")S.promo=null;
+  lock("#po .opt",btn);stage.querySelectorAll("#rg .opt").forEach(x=>{x.disabled=true});
+  sfx.cha();coins(o.k==="full"?8:4);
+  const future=c2(g.sched.reduce((a,b)=>a+b,0));
+  let m=`${r.n} ${match?"will love this gift! Joy goes up a lot.":"will like it, but it is not their favorite style."} You paid ${money(g.paid)} today${future?` and committed ${money(future)} from your future paychecks`:""}.`;
+  dash(match?"They will love it!":"Nice choice.");
+  const mood={o:r.av,m:match?"happy":"neutral"};
+  $("bub").innerHTML=`<strong>Flash says:</strong> ${o.k==="full"?"Cha-ching! Great choice.":"Only "+money(g.paid)+" today! You will barely notice."}`;
+  const f=$("fb");
+  const offer=!S.protAsked&&it.price>=100;
+  f.innerHTML=`<div class="fb">${av(r.av,mood.m,46)}<div>${m}</div></div>`;
+  announce(m);speak(m);
+  if(offer){
+    S.protAsked=true;
+    f.innerHTML+=`<div class="fb warn"><div><strong>Checkout offer:</strong> Add a protection plan for $15? It replaces this gift for free if it arrives broken.</div></div>
+      <button class="opt" id="pp" ${S.cash<15?'aria-disabled="true"':""}><strong>Add protection: $15 cash today</strong></button><button class="opt" id="np"><strong>No thanks</strong></button>`;
+    $("pp").onclick=()=>{if(S.cash<15)return;S.cash=c2(S.cash-15);S.protected=true;g.protected=true;sfx.cha();dash();done("Protection plan added.")};
+    $("np").onclick=()=>done("No protection plan.");
+    function done(t){f.innerHTML=`<div class="fb">${t}</div><button class="primary" id="nx">Back to ${st.name}</button><button class="secondary" id="nx2">Back to the mall map</button>`;announce(t);$("nx").onclick=()=>enterStore(st.id);$("nx2").onclick=leaveStore;$("nx").focus()}
+  }else{
+    f.innerHTML+=`<button class="primary" id="nx">Back to ${st.name}</button><button class="secondary" id="nx2">Back to the mall map</button>`;
+    $("nx").onclick=()=>enterStore(st.id);$("nx2").onclick=leaveStore;$("nx").focus();
+  }
+}
+
+/* ================= checkout ================= */
+function checkout(){
+  music("wish");
+  const ag=active();
+  const sticker=ag.reduce((a,g)=>a+g.price,0);
+  const total=ag.reduce((a,g)=>a+g.paid+g.sched.reduce((x,y)=>x+y,0),0);
+  const text=ag.length?`Checkout. The sticker prices add up to ${say$(sticker)}. Your total cost, with fees, is ${say$(total)}. You paid ${say$(S.scn.cash-S.cash)} today. The rest comes out of your future paychecks. Open the payment calendar to see when.`:"You did not buy any gifts. Your cash stays put, but the holidays are still coming.";
+  dash();
+  show(`<h2>Checkout Counter</h2>
+  ${ag.length?`<table><caption class="sr">Your cart</caption><thead><tr><th scope="col">Gift</th><th scope="col">For</th><th scope="col">Plan</th><th scope="col">Total</th></tr></thead><tbody>
+   ${ag.map(g=>`<tr><th scope="row">${g.item.n}</th><td>${S.scn.recips[g.who].n}</td><td>${g.label}</td><td>${money(g.paid+g.sched.reduce((x,y)=>x+y,0))}</td></tr>`).join("")}</tbody></table>
+  <div class="stat"><span>Sticker prices</span><strong>${money(sticker)}</strong></div>
+  <div class="stat"><span>Total you will pay (with fees and protection)</span><strong>${money(total)}</strong></div>
+  <div class="stat"><span>Paid today</span><strong>${money(ag.reduce((a,g)=>a+g.paid,0))}</strong></div>
+  <button class="secondary" id="cal" aria-expanded="false">Show my payment calendar</button><div id="calp"></div>`:"<p class=\"lead\">You are heading home with no gifts. Your cash stays put.</p>"}
+  <p><button class="primary" id="go">Start the holiday season</button><button class="secondary" id="back">Keep shopping</button></p>`,text);
+  const cal=$("cal");
+  if(cal)cal.onclick=()=>{
+    const open=cal.getAttribute("aria-expanded")==="true";cal.setAttribute("aria-expanded",!open);
+    $("calp").innerHTML=open?"":`<div class="calendar">${[1,2,3,4,5].map((j,i)=>{const d=schedSum(j);return `<div class="day ${d>S.pay?"hot":""}" style="animation-delay:${i*.12}s"><span>${DATES[j]}</span><b>${money(d)}</b><small>${d>S.pay?"More than one paycheck":"Fits one paycheck"}</small></div>`}).join("")}</div>
+    <p class="fine">Each paycheck leaves ${money(S.pay)} of spending money. Cash left today: ${money(S.cash)}.</p>`;
+    sfx.pop();
+  };
+  $("go").onclick=()=>{S.k=0;nextDate()};$("back").onclick=mall;
+}
+
+/* ================= repayment ================= */
+function nextDate(){S.k++;if(S.k>5)return results();music("silent");S.cash=c2(S.cash+S.pay);S.before=c2(S.cash-S.pay);S.evNote="";dash();event()}
+function spread(amount,k){const q=c2(amount/4);for(let j=0;j<4;j++){const idx=Math.min(5,k+j);S.bills[idx]=c2(S.bills[idx]+(j===3?c2(amount-q*3):q))}}
+function buildEvent(id,k){
+  const bill=(t,amt,plan,joyYes,joyNo)=>({t,text:null,opts:[
+     {t:`Pay it today: ${money(amt)}`,go(){S.bills[k]=c2(S.bills[k]+amt);if(joyYes)S.extraJoy+=joyYes;return "Added to today's payments."}},
+     ...(plan?[{t:`Spread it over 4 paychecks: ${money(c2(amt/4))} each`,go(){spread(amt,k);return `Spread across your next four paychecks, ${money(c2(amt/4))} each. Easier today, but those paychecks are spoken for.`}}]:[])]});
+  if(id==="car"){const e=bill("",175,true);return Object.assign(e,{title:"Surprise Bill: Car Repair",text:"Your car failed inspection. The repair is $175, and you need the car to get to work.",alert:true,mood:"shocked"})}
+  if(id==="utility"){return {title:"Higher Utility Bill",text:"A cold snap pushed the heating bill up. This month it is $45 more than planned.",mood:"worried",opts:[{t:"Pay the bill: $45 today",go(){S.bills[k]=c2(S.bills[k]+45);return "Added to today's payments."}}]}}
+  if(id==="birthday"){return {title:"Friend's Birthday",text:"A good friend has a birthday this week. A small gift would cost $30.",mood:"neutral",opts:[{t:"Buy a gift: $30 today",go(){S.bills[k]=c2(S.bills[k]+30);S.extraJoy+=4;return "Gift added to today's payments. Your friend is thrilled."}},{t:"Skip it",go(){S.extraJoy-=2;return "You skipped it. Holiday joy dips a little."}}]}}
+  if(id==="bonus"){return {title:"Holiday Bonus",text:"Good news. Your employer added a $50 holiday bonus to this paycheck.",mood:"happy",good:true,opts:[{t:"Add $50 to my cash",go(){S.cash=c2(S.cash+50);return "Bonus added: $50."}}]}}
+  if(id==="broken"){
+    if(!active().length)return buildEvent("utility",k);
+    const g=active()[Math.floor(Math.random()*active().length)];
+    if(S.protected)return {title:"A Gift Arrived Broken",text:`The ${g.item.n} for ${S.scn.recips[g.who].n} arrived damaged. Your protection plan covers a free replacement.`,mood:"happy",good:true,opts:[{t:"Use the protection plan",go(){return "Replaced for free. That $15 paid off."}}]};
+    return {title:"A Gift Arrived Broken",text:`The ${g.item.n} for ${S.scn.recips[g.who].n} arrived damaged, and there is no protection plan. A replacement costs $40.`,mood:"shocked",opts:[{t:"Replace it: $40 today",go(){S.bills[k]=c2(S.bills[k]+40);return "Replacement added to today's payments."}},{t:"Leave it broken",go(){S.extraJoy-=5;return "Holiday joy drops."}}]};
+  }
+}
+function event(){
+  const k=S.k,id=S.rev[k-1];
+  if(!id||k===5){return payStep()}
+  const ev=buildEvent(id,k);
+  sfx[ev.good?"bell":"buzz"]();
+  const text=`${DATES[k]}. Paycheck day. ${ev.title}. ${ev.text.replace(/\$(\d+)/g,"$1 dollars")}`;
+  show(`<div class="prog">${DATES[k]} &middot; Paycheck ${k} of 5</div>
+  ${ev.alert?`<div class="alert">${av(ME,"shocked",64)}<div><h2>${ev.title}</h2><p style="margin:0">${ev.text}</p></div></div>`:`<h2>${ev.title}</h2><div class="fb ${ev.good?"":"warn"}">${av(ME,ev.mood||"neutral",56)}<div>${ev.text}</div></div>`}
+  <div id="eo">${ev.opts.map((o,i)=>`<button class="opt" data-i="${i}"><strong>${o.t}</strong></button>`).join("")}</div><div id="fb"></div>`,text);
+  stage.querySelectorAll("#eo .opt").forEach(b=>b.onclick=()=>{
+    const m=ev.opts[+b.dataset.i].go();lock("#eo .opt",b);sfx.pop();dash();S.evNote=m;fbNext(m,"Go to the payments",payStep);
+  });
+}
+function dueParts(k){
+  const parts=[];
+  active().forEach(g=>{if(g.sched[k]>0)parts.push({l:`${g.item.n} (${g.label})`,a:g.sched[k]})});
+  if(S.bills[k]>0)parts.push({l:"Bills and expenses",a:S.bills[k]});
+  if(S.carry>0)parts.push({l:"Rolled over from a missed payment",a:S.carry});
+  return parts;
+}
+function payStep(msg){
+  const k=S.k,parts=dueParts(k),due=c2(parts.reduce((a,p)=>a+p.a,0));
+  const short=c2(due-S.cash),ok=short<=0;
+  dash(ok?null:"I need to cover this.");
+  const text=`${DATES[k]}. You have ${say$(S.cash)} in cash. Payments due: ${say$(due)}. ${ok?"You can cover everything.":"You are short by "+say$(short)+". Choose how to handle it."}`;
+  const can=active().filter(g=>g.paid>0||g.sched.some((s,j)=>j>=k&&s>0));
+  show(`<div class="prog">${DATES[k]} &middot; Paycheck ${k} of 5</div><h2>Payments Due: ${DATES[k]}</h2>
+  ${msg?`<div class="fb warn">${msg}</div>`:""}
+  <div class="stat"><span>Cash after your paycheck</span><strong>${money(S.cash)}</strong></div>
+  <table><caption class="sr">Payments due today</caption><thead><tr><th scope="col">Payment</th><th scope="col">Amount</th></tr></thead><tbody>
+   ${parts.length?parts.map(p=>`<tr><th scope="row">${p.l}</th><td>${money(p.a)}</td></tr>`).join(""):'<tr><th scope="row">Nothing due today</th><td>$0</td></tr>'}
+   <tr><th scope="row"><strong>Total due</strong></th><td><strong>${money(due)}</strong></td></tr></tbody></table>
+  ${ok?`<div class="fb">${av(ME,"happy",46)}<div>You have enough to cover everything due today.</div></div><button class="primary" id="pay">Pay ${money(due)}</button>`
+  :`<div class="fb warn">${av(ME,"worried",46)}<div>You are short by <strong>${money(short)}</strong>. Pick a way to cover it.</div></div>
+   <div id="so">
+    <button class="opt" data-a="shift" ${S.shifts?"":'aria-disabled="true"'}><strong>Pick up an extra shift: +${money(SHIFT)}</strong><small>${S.shifts?S.shifts+" shift"+(S.shifts>1?"s":"")+" left this season.":"No shifts left this season."}</small></button>
+    <button class="opt" data-a="return" ${can.length?"":'aria-disabled="true"'}><strong>Return a gift for a refund</strong><small>You get back what you paid, minus fees, and future payments for it are cancelled. Holiday joy drops.</small></button>
+    <button class="opt" data-a="skip"><strong>Skip these payments</strong><small>Adds a ${money(LATE)} late fee, and everything due rolls into your next paycheck.</small></button>
+   </div><div id="rt"></div>`}`,text);
+  if(ok)$("pay").onclick=()=>settle(false);
+  stage.querySelectorAll("#so .opt").forEach(b=>b.onclick=()=>{
+    if(b.getAttribute("aria-disabled")==="true"){announce("That option is not available.");return}
+    const a=b.dataset.a;
+    if(a==="shift"){S.shifts--;S.cash=c2(S.cash+SHIFT);sfx.cha();coins(6);payStep("You worked an extra shift and earned "+money(SHIFT)+".")}
+    else if(a==="skip"){sfx.buzz();settle(true)}
+    else returnList(can);
+  });
+}
+function returnList(can){
+  const k=S.k;
+  $("rt").innerHTML=`<h3>Which gift do you want to return?</h3><div id="rl">${can.map((g,i)=>{
+    const future=c2(g.sched.reduce((a,s,j)=>j>=k?a+s:a,0)+g.carried),refund=Math.max(0,c2(g.paid-g.fee));
+    return `<button class="opt" data-i="${i}"><strong>${g.item.n} (for ${S.scn.recips[g.who].n})</strong><small>Refund ${money(refund)}. Cancels ${money(future)} of payments.</small></button>`}).join("")}</div>
+    <button class="secondary" id="rc">Never mind</button>`;
+  $("rc").onclick=()=>{$("rt").innerHTML=""};
+  stage.querySelectorAll("#rl .opt").forEach(b=>b.onclick=()=>{
+    const g=can[+b.dataset.i];
+    const refund=Math.max(0,c2(g.paid-g.fee));
+    for(let j=k;j<6;j++)g.sched[j]=0;
+    S.carry=c2(S.carry-g.carried);g.carried=0;
+    S.cash=c2(S.cash+refund);g.active=false;delete S.filled[g.who];
+    sfx.cha();payStep(`Returned the ${g.item.n}. Refund: ${money(refund)}. The ${S.scn.recips[g.who].n} gift is gone, so holiday joy dropped.`);
+  });
+}
+function settle(skip){
+  const k=S.k,parts=dueParts(k),due=c2(parts.reduce((a,p)=>a+p.a,0));
+  const row={d:DATES[k],before:S.before,pay:S.pay,due,late:0,after:0,skipped:skip};
+  let m;
+  if(skip){
+    S.carry=c2(due);
+    active().forEach(g=>{g.carried=c2(g.carried+g.sched[k]);g.sched[k]=0});
+    S.bills[k]=0;
+    S.cash=c2(S.cash-LATE);S.fees=c2(S.fees+LATE);S.lateFees=c2(S.lateFees+LATE);row.late=LATE;
+    m=`You skipped ${money(due)}. A ${money(LATE)} late fee was charged, and ${money(due)} rolls into your next paycheck.`;
+  }else{
+    S.cash=c2(S.cash-due);
+    active().forEach(g=>{g.paid=c2(g.paid+g.sched[k]+g.carried);g.carried=0;g.sched[k]=0});
+    S.bills[k]=0;S.carry=0;
+    m=`You paid ${money(due)}. Cash left: ${money(S.cash)}.`;
+    sfx.cha();
+  }
+  row.after=S.cash;S.log.push(row);
+  const mood=S.cash<0||skip?"worried":(S.cash>S.pay?"happy":"neutral");
+  dash(skip?"Ouch. That fee stings.":"One more paycheck down.");
+  show(`<div class="prog">${DATES[k]} &middot; Paycheck ${k} of 5</div><h2>${skip?"Payments Skipped":"Payments Made"}</h2>
+   <div class="fb ${skip?"warn":""}">${av(ME,mood,56)}<div>${m}</div></div>
+   <div class="stat"><span>Cash now</span><strong class="${S.cash<0?"neg":""}">${money(S.cash)}</strong></div>
+   <div class="stat"><span>Still to pay in future paychecks</span><strong>${money(futureTotal(k+1))}</strong></div>
+   <button class="primary" id="nx">${k<5?"Next paycheck: "+DATES[k+1]:"See my results"}</button>`,m);
+  $("nx").onclick=nextDate;$("nx").focus();
+}
+
+/* ================= results ================= */
+function results(){
+  S.k=6;dash();
+  const unpaid=c2(S.carry),ag=active(),lateN=S.log.filter(r=>r.skipped).length;
+  const jp=joyPct(),endCash=S.cash;
+  const sticker=ag.reduce((a,g)=>a+g.price,0),real=ag.reduce((a,g)=>a+g.paid,0)+unpaid*0;
+  const moneyScore=Math.max(0,Math.min(100,Math.round(100-S.fees*1.2-(endCash<0?Math.abs(endCash)*0.5:0)-unpaid*0.5)));
+  let cls,title,msg,mood="happy";
+  if(unpaid===0&&lateN===0&&endCash>=0&&jp>=70){cls="g";title="Holiday Hero";msg="Great gifts, every payment made on time, and no fees from missed payments. You balanced joy and money."}
+  else if(unpaid===0&&lateN===0&&endCash>=0){cls="g";title="Steady Saver";msg="Every payment was made on time. The holidays were a little quieter, but your money is in good shape."}
+  else if(unpaid===0){cls="a";title="Stretched Thin";msg=`You paid everything off, but it cost you ${lateN?lateN+" missed payment date"+(lateN>1?"s":"")+" and "+money(S.lateFees)+" in late fees":"a cash balance below zero"}.`;mood="neutral"}
+  else{cls="r";title="January Hangover";msg=`You still owe ${money(unpaid)} after the last paycheck, and fees added up to ${money(S.fees)}.`;mood="worried"}
+  const text=`Results. ${title}. ${msg} Holiday joy: ${jp} percent. Fees: ${say$(S.fees)}. Cash at the end: ${endCash<0?"below zero by "+say$(endCash):say$(endCash)}.`;
+  music(cls==="r"?"silent":"wish");
+  show(`<h2>Results: ${title}</h2>
+  <div class="badge ${cls}">${av(ME,mood,64)}<div>${msg}</div></div>
+  <div class="stat"><span>Holiday joy</span><strong>${jp}%</strong></div><div class="meter"><div id="m1"></div></div>
+  <div class="stat"><span>Money health</span><strong>${moneyScore}%</strong></div><div class="meter m2"><div id="m2"></div></div>
+  <div class="stat"><span>Gifts kept</span><strong>${ag.length} of ${S.scn.recips.length}</strong></div>
+  <div class="stat"><span>Sticker price of kept gifts</span><strong>${money(sticker)}</strong></div>
+  <div class="stat"><span>Fees paid or owed</span><strong>${money(S.fees)}</strong></div>
+  <div class="stat"><span>Unpaid balance</span><strong>${money(unpaid)}</strong></div>
+  <div class="stat"><span>Cash at the end</span><strong class="${endCash<0?"neg":""}">${money(endCash)}</strong></div>
+  <h3>Your paycheck history</h3>
+  <table><caption class="sr">What happened at each paycheck</caption><thead><tr><th scope="col">Date</th><th scope="col">Cash before</th><th scope="col">Paycheck</th><th scope="col">Due</th><th scope="col">Late fee</th><th scope="col">Cash after</th></tr></thead><tbody>
+   ${S.log.map(r=>`<tr><th scope="row">${r.d}</th><td>${money(r.before)}</td><td>+${money(r.pay)}</td><td>${r.skipped?"Skipped ("+money(r.due)+")":"-"+money(r.due)}</td><td>${r.late?"-"+money(r.late):"None"}</td><td class="${r.after<0?"neg":""}">${money(r.after)}</td></tr>`).join("")}</tbody></table>
+  <button class="primary" id="go">Continue to the quick checks</button>`,text);
+  requestAnimationFrame(()=>{if($("m1")){$("m1").style.width=jp+"%";$("m2").style.width=moneyScore+"%"}});
+  if(cls==="g"){confetti();sfx.fan()}else sfx[cls==="r"?"buzz":"bell"]();
+  $("go").onclick=()=>quiz(0);
+}
+
+/* ================= quick checks ================= */
+const QZ=[
+ {q:"Four payments of $50 each add up to what total?",o:["$200, plus any fees","$50, because only one payment is due today","$150, because the first payment is free"],a:0,f:"The price is the same. Only the timing changes."},
+ {q:"You are short on payment day. Which move usually costs the most?",o:["Picking up an extra shift","Skipping the payment, which adds a late fee and rolls the balance forward","Returning a gift for a refund"],a:1,f:"Skipping adds a fee and does not make the payment disappear."},
+ {q:"Which question should you ask before choosing a payment plan?",o:["Is each payment small enough to ignore?","Will the sale price still be there tomorrow?","Does the full cost, including fees, fit my future paychecks?"],a:2,f:"Compare the full cost and your future paychecks, not the size of one payment."},
+ {q:"Why did a cash cushion matter when a surprise bill arrived?",o:["It covered the bill without claiming more of your future paychecks","It made the bill smaller","It removed late fees from every plan"],a:0,f:"Cash on hand is the only protection that does not borrow from the future."}
+];
+function quiz(i){
+  if(i>=QZ.length)return finish();
+  const q=QZ[i];
+  show(`<div class="prog">Quick check ${i+1} of ${QZ.length}</div><h2>${q.q}</h2>
+  <div id="qo">${q.o.map((t,k)=>`<button class="opt" data-k="${k}"><strong>${t}</strong></button>`).join("")}</div><div id="fb"></div>`,`Quick check ${i+1} of ${QZ.length}. ${q.q}`);
+  stage.querySelectorAll("#qo .opt").forEach(b=>b.onclick=()=>{
+    const ok=+b.dataset.k===q.a;
+    stage.querySelectorAll("#qo .opt").forEach(x=>{x.disabled=true;x.setAttribute("aria-disabled","true");if(+x.dataset.k===q.a)x.classList.add("good")});
+    if(!ok)b.classList.add("bad");sfx[ok?"cha":"buzz"]();
+    fbNext((ok?"Correct. ":"Not quite. ")+q.f,i===QZ.length-1?"Finish":"Next question",()=>quiz(i+1));
+  });
+}
+function finish(){
+  const text="Key takeaway. Smaller payments do not mean a lower price. Before choosing Buy Now, Pay Later, add up the full cost, including fees, and check it against the paychecks that will have to cover it. Keep a cash cushion for the surprise you did not plan for.";
+  show(`<h2>Key Takeaway</h2>
+  <p class="lead">Smaller payments do not mean a lower price. Before choosing Buy Now, Pay Later, add up the full cost, including fees, and check it against the paychecks that will have to cover it. Keep a cash cushion for the surprise you did not plan for.</p>
+  <h3>Discussion prompt</h3>
+  <p>Does Buy Now, Pay Later encourage smarter budgeting or make overspending easier? Use what happened in your own run as evidence.</p>
+  <button class="primary" id="again">Play again with a new situation</button>`,text);
+  $("again").onclick=pickScenario;
+}
+
+/* ================= start ================= */
+newGame(0);dash();warmup();
+})();
+</script>
+</body>
+</html>
